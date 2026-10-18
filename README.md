@@ -1,380 +1,378 @@
 # 🩺 Diabetes Risk Prediction: An End-to-End Machine Learning Portfolio Project
 
-> **An applied machine learning workflow covering exploratory data analysis, physiological data preprocessing, cross-validation hyperparameter tuning, model trade-off evaluation, and interactive Streamlit deployment.**
+> **A rigorous, end-to-end machine learning workflow exploring tabular physiological data, leak-free preprocessing pipelines, stratified cross-validation hyperparameter tuning, model trade-off evaluation, and interactive Streamlit deployment.**
 
 ---
 
 > [!CAUTION]
-> ### ⚠️ Critical Educational & Clinical Disclaimer
-> **This project is strictly for educational, algorithmic study, and machine learning portfolio demonstration purposes.**
-> - **Not Clinically Validated:** The models, preprocessing logic, and probability scores produced by this project are **not** certified, validated, or approved by any medical regulatory agency (e.g., FDA, CE-IVD, WHO).
-> - **Do Not Use for Clinical Decisions:** This software **must never be used to diagnose, screen, treat, monitor, or manage diabetes or any other medical condition in real patients.**
-> - **Demographic Limitation:** The underlying historical dataset (Pima Indians Diabetes Database) was collected from a specific demographic cohort (adult females of Pima Indian heritage in 1990) and **cannot generalize** across diverse ethnicities, modern clinical diagnostic standards, pediatric populations, or different biological sexes.
-> - **Seek Professional Care:** Anyone with medical concerns or symptoms should seek direct guidance from a licensed healthcare provider.
+> ### ⚠️ Critical Educational & Healthcare Disclaimer
+> **This software and machine learning project are strictly for educational, research, and portfolio demonstration purposes.**
+> - **Not Clinically Validated:** The predictive models, preprocessing rules, risk categories, and calculated probability estimates are **not clinically validated**, tested in healthcare trials, or certified by any regulatory agency (e.g., FDA, CE-IVD, WHO, or local medical authorities).
+> - **Must Not Be Used for Medical Decisions:** This project **must never be used for clinical diagnosis, patient screening, triage, treatment selection, or medical management of diabetes or any other health condition.**
+> - **Demographic and Population Limitations:** The underlying historical dataset (the Pima Indians Diabetes Database) was collected from adult female patients of Pima Indian heritage in the Phoenix, Arizona area prior to 1990. Because genetic predispositions, modern lifestyle factors, environmental contexts, and baseline physiological norms differ across cohorts, **the findings and statistical relationships cannot be generalized** across diverse demographic groups, male patients, pediatric populations, or modern clinical environments.
+> - **Consult Healthcare Professionals:** Anyone seeking medical advice, diagnosis, or treatment for diabetes or related symptoms should immediately consult a licensed medical doctor or healthcare provider.
 
 ---
 
 ## 📑 Table of Contents
 
-1. [Project Overview](#-project-overview)
-2. [Problem Statement & Educational Objectives](#-problem-statement--educational-objectives)
-3. [Dataset Source, Features & Limitations](#-dataset-source-features--limitations)
-4. [Technologies & Tools Used](#-technologies--tools-used)
-5. [End-to-End Project Workflow](#-end-to-end-project-workflow)
-6. [Model Evaluation & Cross-Validation Results](#-model-evaluation--cross-validation-results)
-7. [Why Logistic Regression Was Selected (vs. Random Forest)](#-why-logistic-regression-was-selected-vs-random-forest)
-8. [Project Folder Tree](#-project-folder-tree)
-9. [Saved Artifacts & Outputs Guide](#-saved-artifacts--outputs-guide)
-10. [Setup Guide for Windows](#-setup-guide-for-windows)
-11. [Execution Guide: Reproducing Analysis & Launching App](#-execution-guide-reproducing-analysis--launching-app)
-12. [Key Machine Learning Lessons & Portfolio Takeaways](#-key-machine-learning-lessons--portfolio-takeaways)
+1. [Project Overview & Architecture](#-project-overview--architecture)
+2. [Project Objectives](#-project-objectives)
+3. [Features of the Streamlit Application](#-features-of-the-streamlit-application)
+4. [Dataset Description & Limitations](#-dataset-description--limitations)
+5. [The Eight Input Features & Clinical Meaning](#-the-eight-input-features--clinical-meaning)
+6. [Technologies & Libraries Used](#-technologies--libraries-used)
+7. [End-to-End Machine Learning Workflow](#-end-to-end-machine-learning-workflow)
+8. [Data Preprocessing & Leakage Prevention](#-data-preprocessing--leakage-prevention)
+9. [Models Compared](#-models-compared)
+10. [Cross-Validation Results](#-cross-validation-results)
+11. [Held-Out Test Set Results](#-held-out-test-set-results)
+12. [Model Selection & Evaluation Analysis](#-model-selection--evaluation-analysis)
+13. [Project Directory Structure](#-project-directory-structure)
+14. [Windows Installation Guide](#-windows-installation-guide)
+15. [Running the Analysis & Streamlit Application](#-running-the-analysis--streamlit-application)
+16. [Saved Artifacts & Outputs Guide](#-saved-artifacts--outputs-guide)
+17. [Known Limitations & Responsible-Use Statement](#-known-limitations--responsible-use-statement)
+18. [Planned Future Improvements](#-planned-future-improvements)
 
 ---
 
-## 🎯 Project Overview
+## 🎯 Project Overview & Architecture
 
-This repository demonstrates a complete, production-structured data science lifecycle applied to binary classification on tabular healthcare data:
+This repository demonstrates how to build, benchmark, and deploy a machine learning classification system following clean software engineering and data science best practices. Rather than training models on raw, unvalidated CSV records, this project addresses the real-world statistical and physiological challenges typical of medical tabular data: identifying hidden missingness disguised as numerical zeros, preventing information leakage across train/validation/test partitions, prioritizing clinically meaningful metrics over raw accuracy, and serving the model through an accessible web interface.
 
 ```
-[Raw CSV Dataset]
-       │
-       ▼
-[Exploratory Data Analysis] ──► [Distribution & Correlation Plots]
-       │
-       ▼
-[Zero-to-NaN Medical Cleaning]
-       │
-       ▼
-[Stratified 80/20 Train-Test Split] (Data Leakage Safeguard)
-       │
-       ▼
-[Modular ColumnTransformer Pipeline] (Median Imputation + StandardScaler)
-       │
-       ▼
-[5-Fold Stratified Cross-Validation & Grid Search]
-  ├── Logistic Regression (Tuned: C=10.0) ──► Selected Model (Mean CV F1: 0.6563)
-  ├── Random Forest (Tuned: max_depth=10, min_samples_split=5, n_estimators=100)
-  └── Support Vector Machine (Tuned: C=1.0, gamma='scale', kernel='linear')
-       │
-       ▼
-[Single Unseen Test Set Evaluation (154 Patients)] ──► Trade-off Analysis
-       │
-       ▼
-[Exported Pipeline Artifact: best_tuned_pipeline.joblib]
-       │
-       ▼
-[Interactive Streamlit Web Application (app.py)]
+                    ┌────────────────────────────────────────┐
+                    │      Raw Dataset (data/diabetes.csv)   │
+                    │         768 Rows x 9 Columns           │
+                    └───────────────────┬────────────────────┘
+                                        │
+                         [Exploratory Data Analysis]
+                         - Class Distribution (65.1% / 34.9%)
+                         - Zero-as-Missing Detection
+                                        │
+                                        ▼
+             ┌─────────────────────────────────────────────────────┐
+             │         Stratified 80 / 20 Train-Test Split         │
+             │   Train Set: 614 Patients  |  Test Set: 154 Patients │
+             └──────────┬───────────────────────────────┬──────────┘
+                        │ (Isolated Partition)          │ (Strictly Held Out)
+                        ▼                               ▼
+       ┌─────────────────────────────────┐      ┌───────────────┐
+       │     Modular Pipeline Setup      │      │               │
+       │    ColumnTransformer Engine:    │      │               │
+       │ 1. Zero-to-NaN Conversion       │      │               │
+       │ 2. Median Imputation            │      │               │
+       │ 3. StandardScaler               │      │               │
+       └────────────────┬────────────────┘      │               │
+                        │                       │               │
+                        ▼                       │               │
+       ┌─────────────────────────────────┐      │               │
+       │   5-Fold Stratified CV Tuning   │      │               │
+       │   - Logistic Regression         │      │               │
+       │   - Random Forest               │      │               │
+       │   - Support Vector Machine      │      │               │
+       │   Selection Criterion: Mean F1  │      │               │
+       └────────────────┬────────────────┘      │               │
+                        │                       │               │
+            (Selected: Logistic Regression)     │               │
+                        │                       │               │
+                        ▼                       │               │
+       ┌─────────────────────────────────┐      │               │
+       │ Export: best_tuned_pipeline     │      │               │
+       │           (.joblib)             │      │               │
+       └────────────────┬────────────────┘      │               │
+                        │                       │               │
+                        └───────────────┬───────┴───────────────┘
+                                        │
+                                        ▼
+                         [Final Test Evaluation & Audit]
+                         - Generalization vs. Single Split
+                                        │
+                                        ▼
+                         [Interactive Streamlit App]
+                         - Live Input Preprocessing
+                         - Probability Gauge & Explanations
 ```
 
-The application allows users to enter eight physiological and demographic variables, applies identical zero-value preprocessing, normalizes features through the pre-fit scaler, and produces both an algorithmic risk category (Non-Diabetic / At-Risk Diabetic) and an estimated probability score alongside educational context.
+---
+
+## 🎯 Project Objectives
+
+1. **Implement Leak-Free Preprocessing:** Guarantee that all statistical estimators (imputation medians and scaling parameters) are calculated solely from training partitions, preventing test set contamination.
+2. **Handle Biological Impossibilities:** Properly identify and treat biologically invalid zero entries in diagnostic columns (`Glucose`, `BloodPressure`, `SkinThickness`, `Insulin`, `BMI`) as missing values rather than true biological zeros.
+3. **Conduct Rigorous Model Benchmarking:** Compare linear models (`Logistic Regression`), tree ensembles (`Random Forest`), and kernel methods (`Support Vector Machine`) using identical preprocessing and validation folds.
+4. **Prioritize Clinically Relevant Metrics:** Mitigate the distorting effects of class imbalance (~65% negative / ~35% positive) by optimizing for **F1-Score** (balancing precision and recall) and **ROC-AUC** rather than raw classification accuracy.
+5. **Demonstrate Methodological Integrity:** Provide transparent reasoning for why multi-fold cross-validation is used as the selection authority over single held-out test splits.
+6. **Deploy an Interactive, Educational Application:** Encapsulate the complete end-to-end pipeline into an interactive Streamlit tool that exposes real-time predictions, probabilities, and educational warnings.
 
 ---
 
-## 💡 Problem Statement & Educational Objectives
+## 💻 Features of the Streamlit Application
 
-### Problem Statement
-Type 2 diabetes is a chronic metabolic condition characterized by elevated blood glucose levels due to insulin resistance or insufficient insulin production. In clinical research, early risk stratification can identify individuals who would benefit from lifestyle interventions and formal diagnostic testing (such as fasting plasma glucose or oral glucose tolerance tests).
+The interactive web interface is implemented in [`app.py`](file:///c:/Users/ASUS/Desktop/Projects/diabetes-risk-prediction/app.py) using Streamlit. It loads the pre-fit serialized pipeline (`models/best_tuned_pipeline.joblib`) directly without retraining. Key features include:
 
-Building a statistical classifier for this task presents common real-world machine learning challenges:
-1. **Biological implausibility in raw data:** Medical tests that were not performed were recorded as literal `0` values (e.g., Blood Pressure = 0 mm Hg, BMI = 0 kg/m²).
-2. **Moderate class imbalance:** In the dataset, ~65.1% of patients are non-diabetic and ~34.9% are diabetic, making standard classification accuracy misleading.
-3. **Data leakage hazards:** Imputing missing values or standardizing features on the entire dataset prior to splitting artificially inflates evaluation metrics.
-4. **Generalization vs. Single-Split variance:** A model that scores highest on a single test split may not be the most stable model across multi-fold cross-validation.
-
-### Educational Objectives
-This portfolio project was designed to demonstrate:
-- **Clean modular software architecture** separating exploratory analysis, preprocessing, baseline training, comparative modeling, hyperparameter optimization, and interactive deployment.
-- **Strict data leakage prevention** by encapsulating imputation and scaling inside scikit-learn `Pipeline` and `ColumnTransformer` constructs, fit solely on training folds.
-- **Metric-driven model selection** focused on **F1-score** (balancing precision and recall for positive diabetic cases) and **ROC-AUC** rather than raw accuracy.
-- **Transparent documentation of model trade-offs**, analyzing why cross-validation and single test splits can yield divergent rankings.
+- **Interactive Physiological Inputs:** Numeric input widgets for all eight patient features, with configured defaults, ranges, and units.
+- **Identical Zero-to-NaN Preprocessing:** Mirrors the offline training pipeline by converting biological zero entries in physiological fields (`Glucose`, `BloodPressure`, `SkinThickness`, `Insulin`, `BMI`) to `NaN`, allowing the pipeline's median imputer to handle them consistently.
+- **Dual Classification Output:**
+  - **Categorical Risk Level:** Clear visual card classifying the inputs as **Non-Diabetic (Class 0)** or **At-Risk Diabetic (Class 1)**.
+  - **Estimated Class Probability:** The model's estimated probability score (e.g., `42.8% estimated risk of diabetes`) displayed alongside a visual progress bar.
+- **Submitted Feature Values:** An expandable table displays the eight values submitted by the user for the current prediction.
+- **Persistent Healthcare Disclaimers:** Visible callout banners and sidebar notes emphasizing the educational scope and cautioning against real-world self-diagnosis.
+- **Self-Contained Execution:** Operates entirely locally without external API keys or remote cloud dependencies.
 
 ---
 
-## 📊 Dataset Source, Features & Limitations
+## 📊 Dataset Description & Limitations
 
-### Source
-- **Database:** National Institute of Diabetes and Digestive and Kidney Diseases (NIDDK)
+### Dataset Overview
 - **Dataset Title:** Pima Indians Diabetes Database
-- **Observations:** 768 patient records
-- **Attributes:** 8 numeric physiological/demographic input features + 1 binary target outcome
-
-### Feature Glossary & Zero-Value Processing
-
-| # | Feature | Data Type | Units / Meaning | Clinical Context & Zero-Handling Strategy |
-|:---|:---|:---|:---|:---|
-| 1 | `Pregnancies` | `int64` | Count (0–17) | Number of times pregnant. **0 is biologically valid**; left untouched. |
-| 2 | `Glucose` | `int64` | mg/dL (0–199) | 2-hour oral glucose tolerance test. **0 is biologically impossible** (5 zeros = 0.7%); converted to `NaN` and imputed with median. |
-| 3 | `BloodPressure` | `int64` | mm Hg (0–122) | Diastolic blood pressure. **0 is biologically impossible** (35 zeros = 4.6%); converted to `NaN` and imputed with median. |
-| 4 | `SkinThickness` | `int64` | mm (0–99) | Triceps skin fold thickness (indicator of body fat). **0 is unrecorded** (227 zeros = 29.6%); converted to `NaN` and imputed with median. |
-| 5 | `Insulin` | `int64` | mu U/ml (0–846) | 2-hour serum insulin. **0 is unrecorded** (374 zeros = 48.7%); converted to `NaN` and imputed with median. |
-| 6 | `BMI` | `float64` | kg/m² (0.0–67.1) | Body Mass Index. **0 is biologically impossible** (11 zeros = 1.4%); converted to `NaN` and imputed with median. |
-| 7 | `DiabetesPedigreeFunction` | `float64` | Score (0.078–2.42) | Genetic pedigree score quantifying family history of diabetes. 0 is not present; left untouched. |
-| 8 | `Age` | `int64` | Years (21–81) | Patient age. All patients are 21 years or older; left untouched. |
-| **Target** | `Outcome` | `int64` | Binary (0 or 1) | **0 = Non-Diabetic** (500 patients, 65.10%), **1 = Diabetic** (268 patients, 34.90%). |
+- **Originating Body:** National Institute of Diabetes and Digestive and Kidney Diseases (NIDDK)
+- **Hosted By:** UCI Machine Learning Repository / Kaggle
+- **Dataset Size:** 768 patient records (rows)
+- **Dimensionality:** 8 continuous/integer input features and 1 binary target outcome
+- **Target Variable (`Outcome`):**
+  - `0`: Non-diabetic (500 records — 65.10%)
+  - `1`: Diabetic (268 records — 34.90%)
 
 ### Dataset Limitations
-1. **Demographic Homogeneity:** All records represent females aged 21 and older of Pima Indian heritage living near Phoenix, Arizona, collected before 1990. Results cannot be generalized across men, children, or non-Pima populations.
-2. **Missing Test Representation:** Nearly half of the insulin values (48.7%) and nearly a third of skin thickness values (29.6%) are missing tests coded as zeros. While median imputation allows algorithms to train, real clinical practice would account for why certain tests were omitted.
-3. **Sample Size:** 768 rows is a modest sample size. While well-suited for demonstrating core ML concepts, clinical models typically require tens or hundreds of thousands of diverse records.
+1. **Demographic and Gender Restriction:** All participants in this historical study were females of Pima Indian descent aged 21 years or older residing near Phoenix, Arizona. Consequently, models trained on this cohort cannot represent adult males, pediatric populations, or individuals with different ancestral genetic profiles.
+2. **Substantial Unrecorded Observations:** Diagnostic tests that were not recorded were encoded as `0`. Notably, **48.7% of insulin** values and **29.6% of skin thickness** values are zeros. While median imputation allows numerical training, in clinical reality missingness is non-random (Missing Not At Random — MNAR).
+3. **Modest Sample Size:** With only 768 total observations, single validation splits are susceptible to high sampling variance, underscoring the necessity of multi-fold cross-validation.
+4. **Historical Testing Standards:** The clinical assays and thresholds used prior to 1990 may not reflect modern diagnostic practices (e.g., standard HbA1c testing).
 
 ---
 
-## 🛠️ Technologies & Tools Used
+## 🔬 The Eight Input Features & Clinical Meaning
 
-- **Language:** Python 3.12 (compatible with Python 3.10+)
-- **Data Manipulation & Preprocessing:**
-  - `pandas` (v2.3+) – Data loading, exploration, and tabular reporting
-  - `numpy` (v2.2+) – Matrix operations and NaN conversions
-- **Machine Learning & Pipeline Construction:**
-  - `scikit-learn` (v1.6+)
-    - Imputation: `SimpleImputer(strategy='median')`
-    - Normalization: `StandardScaler()`
-    - Pipelines: `Pipeline`, `ColumnTransformer`
-    - Algorithms: `LogisticRegression`, `DecisionTreeClassifier`, `RandomForestClassifier`, `SVC`
-    - Tuning: `GridSearchCV`, `StratifiedKFold`
-    - Evaluation: `f1_score`, `roc_auc_score`, `precision_score`, `recall_score`, `accuracy_score`, `confusion_matrix`, `classification_report`
-- **Data Visualization:**
-  - `matplotlib` (v3.10+) – Plotting backend and figure rendering
-  - `seaborn` (v0.13+) – Statistical plotting (countplots, KDE histograms, boxplots, heatmaps)
-- **Interactive Web UI:**
-  - `streamlit` (v1.66+) – Reactive dashboard with input forms, probability metrics, and responsive layouts
-- **Artifact Serialization:**
-  - `joblib` (v1.4+) – Saving and reloading trained preprocessing and estimator pipelines
+The dataset contains eight diagnostic measurements. A crucial step in this project is recognizing which zeros represent legitimate physiological counts versus unrecorded tests:
+
+| # | Feature Name | Data Type | Units / Range | Physiological Meaning & Clinical Interpretation | Handling of Zero Values |
+|:---:|:---|:---:|:---:|:---|:---|
+| 1 | `Pregnancies` | `int64` | Count (0–17) | Number of times the patient has been pregnant. | **0 is biologically valid** (represents nulliparous patients). Preserved as 0. |
+| 2 | `Glucose` | `int64` | mg/dL (0–199) | Plasma glucose concentration measured after a 2-hour oral glucose tolerance test (OGTT). Normal fasting levels are typically <100 mg/dL. | **0 is biologically impossible** in a living patient (5 occurrences). Converted to `NaN` and imputed. |
+| 3 | `BloodPressure` | `int64` | mm Hg (0–122) | Diastolic blood pressure (pressure in arteries between heartbeats). Typical normal range is 60–80 mm Hg. | **0 is biologically impossible** (35 occurrences). Converted to `NaN` and imputed. |
+| 4 | `SkinThickness` | `int64` | mm (0–99) | Triceps skin fold thickness, an anthropometric measurement used to estimate subcutaneous body fat. | **0 indicates unrecorded test** (227 occurrences / 29.6%). Converted to `NaN` and imputed. |
+| 5 | `Insulin` | `int64` | $\mu\text{U/mL}$ (0–846) | 2-hour serum insulin level following glucose administration. | **0 indicates unrecorded test** (374 occurrences / 48.7%). Converted to `NaN` and imputed. |
+| 6 | `BMI` | `float64` | $\text{kg/m}^2$ (0.0–67.1) | Body Mass Index ($\text{weight in kg} / (\text{height in m})^2$). Clinical categories: Normal (18.5–24.9), Overweight (25–29.9), Obese ($\ge 30$). | **0 is biologically impossible** (11 occurrences). Converted to `NaN` and imputed. |
+| 7 | `DiabetesPedigreeFunction` | `float64` | Score (0.078–2.42) | A mathematical genetic score assessing diabetes family history based on pedigree kinship and age of onset in relatives. | Non-zero continuous score. Preserved as-is. |
+| 8 | `Age` | `int64` | Years (21–81) | Chronological age of the patient. In this dataset, all individuals are adults $\ge 21$. | Valid non-zero integer. Preserved as-is. |
+| — | **`Outcome` (Target)** | `int64` | Binary (0 or 1) | Diagnostic determination: **0 = Negative / Non-Diabetic**, **1 = Positive / Diabetic**. | Target label. |
 
 ---
 
-## 🔄 End-to-End Project Workflow
+## 🛠️ Technologies & Libraries Used
 
-The project is structured into sequential stages:
-
-### Stage 1: Setup & Environment Verification
-- Verified directory scaffolding, created `.venv`, installed pinned dependencies, and ran `first_step.py` to ensure proper Python interpreter discovery.
-
-### Stage 2: Exploratory Data Analysis (EDA)
-- Script: `src/explore_data.py`
-- Confirmed dataset shape `(768, 9)`, validated 0 formal CSV nulls, verified class balance (65.1% / 34.9%), and documented physiological zero occurrences.
-
-### Stage 3: Exploratory Visualizations
-- Script: `src/visualize_data.py`
-- Generated publication-quality visualizations saved to `outputs/`:
-  - `01_outcome_countplot.png`: Bar chart of class frequencies.
-  - `02_histograms_glucose_age_bmi.png`: Feature distributions with KDE overlays.
-  - `03_boxplots_glucose_bmi.png`: Boxplots showing higher median glucose and BMI in diabetic patients.
-  - `04_correlation_heatmap.png`: Correlation matrix highlighting Glucose ($r = 0.47$) and BMI ($r = 0.29$) as primary linear correlates with Outcome.
-
-### Stage 4: Modular Preprocessing & Baseline Training
-- Scripts: `src/prepare_data.py`, `src/train_model.py`
-- Split data into **80% training (614 patients)** and **20% held-out test (154 patients)** with `stratify=y` to preserve the 65/35 ratio.
-- Configured a `ColumnTransformer` applying median imputation and standard scaling to medical features.
-- Trained a baseline Logistic Regression pipeline, writing comprehensive evaluation metrics to `outputs/model_evaluation.txt` and saving `models/diabetes_logistic_regression.joblib`.
-
-### Stage 5: Baseline Algorithm Comparison
-- Script: `src/compare_models.py`
-- Compared four baseline models (Logistic Regression, Decision Tree, Random Forest, SVM) on the identical test split, saving tabular metrics to `outputs/model_comparison.csv` and a bar chart to `outputs/06_model_comparison.png`.
-
-### Stage 6: Cross-Validation & Hyperparameter Tuning
-- Script: `src/tune_models.py`
-- Executed 5-Fold Stratified Cross-Validation on the training set only (preventing test set contamination) with `GridSearchCV`.
-- Preprocessing (median imputation + standard scaling) was fit separately within each fold to guarantee zero leakage.
-- Optimized Logistic Regression, Random Forest, and SVM for F1-score while tracking ROC-AUC.
-- Exported the cross-validation winner to `models/best_tuned_pipeline.joblib`.
-- Evaluated all tuned models on the unseen 20% test split, saving `outputs/cross_validation_results.csv` and `outputs/tuned_model_test_results.csv`.
-
-### Stage 7: Interactive Streamlit Web Application
-- Script: `app.py`
-- Built an educational web app allowing users to input patient measurements.
-- Uses `joblib.load()` to load `models/best_tuned_pipeline.joblib` without retraining.
-- Applies identical zero-to-NaN handling for physiological inputs.
-- Displays prediction outcomes, class probability gauge, feature explanations, and clinical disclaimers.
-
-### Stage 8: Portfolio Documentation & Project Polish
-- Current stage: Standardized README, audited directory structure, verified gitignore rules, and verified reproduction steps.
+| Category | Technology / Library | Purpose in Project |
+|:---|:---|:---|
+| **Core Environment** | **Python 3.10 – 3.12** | Core programming language environment |
+| **Data Manipulation** | **pandas** | Tabular data ingestion, missing-value masking, summary metrics, and CSV reporting |
+| **Numeric Computing** | **numpy** | Array manipulations, vector operations, and `NaN` representation |
+| **Machine Learning** | **scikit-learn** | End-to-end modeling framework: <br>• Preprocessing: `SimpleImputer`, `StandardScaler`, `ColumnTransformer`, `Pipeline`<br>• Algorithms: `LogisticRegression`, `RandomForestClassifier`, `SVC`, `DecisionTreeClassifier`<br>• Validation: `StratifiedKFold`, `GridSearchCV`<br>• Metrics: `f1_score`, `roc_auc_score`, `precision_score`, `recall_score`, `accuracy_score`, `confusion_matrix` |
+| **Data Visualization** | **matplotlib** | Canvas rendering and figure layout generation |
+| **Statistical Plotting** | **seaborn** | High-level statistical charts: KDE distributions, boxplots, correlation heatmaps |
+| **Model Persistence** | **joblib** | Serializing and loading complete fitted scikit-learn pipelines without retraining |
+| **Web Dashboard** | **streamlit** | Interactive, browser-based web application with reactive controls and metric cards |
+| **Version Control** | **Git & GitHub** | Source code management, repository tracking, and portfolio presentation |
 
 ---
 
-## 📈 Model Evaluation & Cross-Validation Results
+## 🔄 End-to-End Machine Learning Workflow
 
-All figures presented below represent **actual, recorded outputs** generated during project execution.
+The project is structured into sequential, reproducible stages:
 
-### 1. Baseline Model Comparison (Stage 5 — Held-Out Test Set)
-*Source: `outputs/model_comparison.csv` (Evaluated on 154 unseen patients)*
+```text
+Stage 1: Environment & Setup ──► Verify Python runtime and packages (first_step.py)
+Stage 2: Exploratory Data Analysis ──► Validate schema, missingness, and zero counts (explore_data.py)
+Stage 3: Statistical Visualizations ──► Export class counts, distributions, heatmaps (visualize_data.py)
+Stage 4: Preprocessing & Baseline Training ──► 80/20 Stratified split & Baseline Logistic Regression (train_model.py)
+Stage 5: Multi-Model Benchmark ──► Compare 4 baseline architectures on test set (compare_models.py)
+Stage 6: Hyperparameter Optimization ──► 5-Fold Stratified CV tuning & export best pipeline (tune_models.py)
+Stage 7: Web Application Deployment ──► Interactive Streamlit diagnosis simulator (app.py)
+```
 
-| Model | Accuracy | Precision | Recall | F1-Score | ROC-AUC |
-|:---|:---:|:---:|:---:|:---:|:---:|
-| **Support Vector Machine (Baseline)** | **0.7403** | **0.6522** | **0.5556** | **0.6000** | 0.7963 |
-| **Random Forest (Baseline)** | 0.7273 | 0.6250 | **0.5556** | 0.5882 | 0.8076 |
-| **Logistic Regression (Baseline)** | 0.7078 | 0.6000 | 0.5000 | 0.5455 | **0.8130** |
-| **Decision Tree (Baseline)** | 0.6688 | 0.5333 | 0.4444 | 0.4848 | 0.6172 |
+1. **Stage 1 — Environment Setup:** Initialize directory hierarchy, configure virtual environment (`.venv`), install pinned dependencies via `requirements.txt`, and verify the Python interpreter with [`first_step.py`](file:///c:/Users/ASUS/Desktop/Projects/diabetes-risk-prediction/first_step.py).
+2. **Stage 2 — Exploratory Data Analysis (EDA):** Run [`src/explore_data.py`](file:///c:/Users/ASUS/Desktop/Projects/diabetes-risk-prediction/src/explore_data.py) to audit the dataset shape `(768, 9)`, confirm that no native nulls exist in the CSV, analyze the 65.1% / 34.9% target distribution, and quantify biological zeros.
+3. **Stage 3 — Data Visualization:** Run [`src/visualize_data.py`](file:///c:/Users/ASUS/Desktop/Projects/diabetes-risk-prediction/src/visualize_data.py) to render and save distribution charts, boxplots, and correlation heatmaps to `outputs/`.
+4. **Stage 4 — Preprocessing & Baseline Pipeline:** Run [`src/prepare_data.py`](file:///c:/Users/ASUS/Desktop/Projects/diabetes-risk-prediction/src/prepare_data.py) and [`src/train_model.py`](file:///c:/Users/ASUS/Desktop/Projects/diabetes-risk-prediction/src/train_model.py). Implement stratified 80/20 partitioning, assemble the `ColumnTransformer`, fit a baseline Logistic Regression model, evaluate on the test split, and export `outputs/model_evaluation.txt`.
+5. **Stage 5 — Baseline Model Comparison:** Run [`src/compare_models.py`](file:///c:/Users/ASUS/Desktop/Projects/diabetes-risk-prediction/src/compare_models.py) to benchmark Logistic Regression, Decision Tree, Random Forest, and SVM under uniform test conditions, saving `outputs/model_comparison.csv` and `outputs/06_model_comparison.png`.
+6. **Stage 6 — Hyperparameter Optimization & Cross-Validation:** Run [`src/tune_models.py`](file:///c:/Users/ASUS/Desktop/Projects/diabetes-risk-prediction/src/tune_models.py). Perform 5-Fold Stratified Cross-Validation strictly on training data using `GridSearchCV`. Optimize for F1-score, export the winning pipeline to `models/best_tuned_pipeline.joblib`, and benchmark all tuned models on the unseen 20% test split.
+7. **Stage 7 — Web Application Deployment:** Run [`app.py`](file:///c:/Users/ASUS/Desktop/Projects/diabetes-risk-prediction/app.py) using `streamlit run app.py` to launch the local web UI for interactive scenario testing and prediction.
 
 ---
 
-### 2. Hyperparameter Tuning via 5-Fold Stratified CV (Stage 6 — Training Set Only)
-*Source: `outputs/cross_validation_results.csv` (614 training patients, 5 stratified folds)*
+## 🛡️ Data Preprocessing & Leakage Prevention
 
-| Model | Best Hyperparameters Selected | Mean CV F1 | Std CV F1 | Mean CV ROC-AUC | Std CV ROC-AUC |
+Data leakage occurs when information from outside the training partition influences feature transformations, resulting in overly optimistic evaluation metrics that fail in production. This project implements strict safeguards:
+
+1. **Split-First Architecture:**
+   - The dataset of 768 rows is split into **80% Training (614 patients)** and **20% Test (154 patients)** using `train_test_split(..., test_size=0.2, stratify=y, random_state=42)`.
+   - The test set is set aside immediately and is never examined or accessed during imputation parameter fitting, scaling parameter fitting, or hyperparameter searching.
+2. **Selective Zero-to-NaN Conversion:**
+   - Diagnostic columns (`Glucose`, `BloodPressure`, `SkinThickness`, `Insulin`, `BMI`) have values of `0` replaced with `np.nan`.
+   - Non-diagnostic variables (`Pregnancies`, `Age`, `DiabetesPedigreeFunction`) are preserved because zero is either valid or absent.
+3. **Encapsulation in `Pipeline` and `ColumnTransformer`:**
+   - Imputation (`SimpleImputer(strategy='median')`) and standardization (`StandardScaler()`) are enclosed inside an automated scikit-learn `Pipeline`.
+   - In cross-validation folds, median values and standard deviation parameters are calculated **only from the training folds** and then applied to the validation fold. Information from validation folds never bleeds into the imputation calculations.
+
+---
+
+## 🤖 Models Compared
+
+Three distinct model families with different inductive biases were evaluated and tuned:
+
+1. **Logistic Regression (Linear Probabilistic Classifier):**
+   - Fits a linear decision boundary using the logistic sigmoid function.
+   - Highly interpretable: model coefficients directly map to feature odds ratios.
+   - Hyperparameter grid: Regularization strength $C \in [0.01, 0.1, 1.0, 10.0, 100.0]$.
+   - **Best Tuned Parameter:** `C = 10.0`.
+2. **Random Forest Classifier (Ensemble Bagging Method):**
+   - A collection of randomized, decorrelated decision trees that aggregate predictions to reduce variance.
+   - Non-linear: naturally captures complex feature interactions and non-monotonic boundaries.
+   - Hyperparameter grid: `n_estimators` $\in [50, 100, 200]$, `max_depth` $\in [\text{None}, 5, 10]$, `min_samples_split` $\in [2, 5, 10]$.
+   - **Best Tuned Parameters:** `n_estimators = 100, max_depth = 10, min_samples_split = 5`.
+3. **Support Vector Machine (Margin Maximization):**
+   - Finds the optimal hyperplane separating classes with maximal geometric margin.
+   - Hyperparameter grid: Kernel $\in [\text{'linear'}, \text{'rbf'}]$, $C \in [0.1, 1.0, 10.0]$, $\gamma \in [\text{'scale'}, \text{'auto'}]$.
+   - **Best Tuned Parameters:** `kernel = 'linear', C = 1.0, gamma = 'scale'`.
+
+---
+
+## 📊 Cross-Validation Results
+
+To ensure unbiased hyperparameter selection, 5-Fold Stratified Cross-Validation was run **exclusively on the 614 training records**. Preprocessing pipelines were refitted independently on every fold.
+
+*Recorded in [`outputs/cross_validation_results.csv`](file:///c:/Users/ASUS/Desktop/Projects/diabetes-risk-prediction/outputs/cross_validation_results.csv):*
+
+| Model Architecture | Selected Hyperparameters | Mean CV F1-Score | Std CV F1-Score | Mean CV ROC-AUC | Std CV ROC-AUC |
 |:---|:---|:---:|:---:|:---:|:---:|
-| **Logistic Regression (Tuned)** 🏆 | `{'C': 10.0}` | **0.6563** | ±0.0291 | 0.8433 | ±0.0188 |
-| **Support Vector Machine (Tuned)** | `{'C': 1.0, 'gamma': 'scale', 'kernel': 'linear'}` | 0.6524 | ±0.0233 | **0.8446** | ±0.0158 |
-| **Random Forest (Tuned)** | `{'max_depth': 10, 'min_samples_split': 5, 'n_estimators': 100}` | 0.6496 | ±0.0209 | 0.8251 | ±0.0290 |
+| **Logistic Regression (Tuned)** 🏆 | `{'C': 10.0}` | **0.6563** | $\pm 0.0291$ | 0.8433 | $\pm 0.0188$ |
+| **Support Vector Machine (Tuned)** | `{'C': 1.0, 'gamma': 'scale', 'kernel': 'linear'}` | 0.6524 | $\pm 0.0233$ | **0.8446** | $\pm 0.0158$ |
+| **Random Forest (Tuned)** | `{'max_depth': 10, 'min_samples_split': 5, 'n_estimators': 100}` | 0.6496 | $\pm 0.0209$ | 0.8251 | $\pm 0.0290$ |
 
 *Primary Selection Metric: Mean Cross-Validation F1-score.*
 
 ---
 
-### 3. Tuned Models on Unseen Held-Out Test Split (Stage 6 — Test Set)
-*Source: `outputs/tuned_model_test_results.csv` (154 held-out patients: 100 non-diabetic, 54 diabetic)*
+## 🎯 Held-Out Test Set Results
 
-| Model | Best Hyperparameters | Accuracy | Precision | Recall | F1-Score | ROC-AUC | TN | FP | FN | TP |
+After hyperparameter tuning and model selection were finalized, all three optimized pipelines were evaluated **once** on the untouched 20% test partition (154 total patients: 100 non-diabetic, 54 diabetic).
+
+*Recorded in [`outputs/tuned_model_test_results.csv`](file:///c:/Users/ASUS/Desktop/Projects/diabetes-risk-prediction/outputs/tuned_model_test_results.csv):*
+
+| Model | Hyperparameters | Accuracy | Precision | Recall | F1-Score | ROC-AUC | TN | FP | FN | TP |
 |:---|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | **Random Forest (Tuned)** | `max_depth=10, min_samples_split=5, n_estimators=100` | **0.7403** | **0.6458** | **0.5741** | **0.6078** | 0.8065 | 83 | 17 | 23 | **31** |
 | **Logistic Regression (Tuned)** | `C=10.0` | 0.7078 | 0.6000 | 0.5000 | 0.5455 | 0.8130 | 82 | 18 | 27 | 27 |
 | **Support Vector Machine (Tuned)** | `C=1.0, gamma='scale', kernel='linear'` | 0.7013 | 0.5909 | 0.4815 | 0.5306 | **0.8133** | 82 | 18 | 28 | 26 |
 
-*Confusion Matrix Abbreviations: TN = True Negatives, FP = False Positives, FN = False Negatives, TP = True Positives.*
+*Confusion matrix key: TN = True Negatives (healthy correctly identified), FP = False Positives (Type I error), FN = False Negatives (Type II error), TP = True Positives (diabetic correctly identified).*
 
 ---
 
-## ⚖️ Why Logistic Regression Was Selected (vs. Random Forest)
+## ⚖️ Model Selection & Evaluation Analysis
 
-A key finding in this project is that **different validation frameworks can favor different algorithms**:
+An honest and critical discussion of why **Logistic Regression** was saved as the final production model despite **Random Forest** scoring higher on the test split:
 
-### 1. Cross-Validation Winner: Logistic Regression
-- Across the 5-fold stratified cross-validation on the 614 training records, **Logistic Regression achieved the highest Mean F1-score (0.6563)** compared to Random Forest (0.6496) and SVM (0.6524).
-- Because cross-validation evaluates performance across five distinct validation partitions, it provides a more generalized, lower-variance estimate of how the algorithm adapts across the full training distribution.
-- **Model Parsimony & Interpretability:** Logistic Regression produces clear, monotonic feature coefficients (e.g., Glucose: $+1.18$, BMI: $+0.69$, Pregnancies: $+0.38$), making every prediction auditable and transparent for educational analysis.
-- Accordingly, the automated model selection routine in `src/tune_models.py` chose Logistic Regression as the pipeline saved to `models/best_tuned_pipeline.joblib`.
+### 1. Selection Authority: Cross-Validation vs. Single Split
+- In accordance with disciplined machine learning practices, **Logistic Regression was selected because it achieved the highest Mean F1-Score (0.6563)** across the 5-fold cross-validation folds.
+- Cross-validation tests an algorithm across 5 distinct partitions of the training data. This reduces the risk that performance is an artifact of one favorable data split.
+- In addition, Logistic Regression demonstrated excellent discriminative ranking with a Mean CV ROC-AUC of **0.8433** and a low standard deviation ($\pm 0.0188$).
 
-### 2. Single Test-Split Winner: Random Forest
-- When both tuned models were evaluated on the single held-out test split of 154 patients, **Random Forest outperformed Logistic Regression**:
-  - Test F1-Score: **0.6078** (Random Forest) vs. **0.5455** (Logistic Regression)
-  - Test Accuracy: **0.7403** vs. **0.7078**
-  - Sensitivity / Recall: **57.41%** (31 true positive patients detected) vs. **50.00%** (27 detected)
-  - False Negatives: **23** missed cases vs. **27** missed cases
+### 2. Why Random Forest Won the Held-Out Test Set
+- On the single test set (154 patients), Random Forest achieved an F1-score of **0.6078** compared to **0.5455** for Logistic Regression, catching 4 additional positive cases (31 vs. 27 true positives).
+- Ensemble tree models can capitalize on specific non-linear relationships or subgroup interactions that happened to be concentrated in this particular test partition.
 
-### 3. The Core Machine Learning Lesson
-This discrepancy illustrates a fundamental machine learning principle:
-> A single test split is subject to sampling variance. An ensemble model like Random Forest can capitalize on specific non-linear patterns within an individual test partition, while a linear model like Logistic Regression may exhibit superior stability averaged across multiple cross-validation folds.
-
-Documenting both perspectives rather than hiding test-set discrepancies demonstrates methodological integrity and real-world data science maturity.
+### 3. Why the Test Set Must Never Be Used to Choose the Model
+> [!IMPORTANT]
+> **Data Science Rule:** Using test set performance to select which model to deploy introduces **post-hoc data snooping leakage**. 
+> - The held-out test set exists solely to measure how well the already-selected model generalizes to unseen data.
+> - If an engineer evaluates multiple models on the test set and subsequently chooses the test-set winner, the test set ceases to be an independent out-of-sample benchmark and effectively functions as a secondary training/validation set.
+> - Because this repository adheres to sound methodology, the selection rule (Mean CV F1) was maintained, and the trade-off is documented transparently rather than obscured.
 
 ---
 
-## 📁 Project Folder Tree
+## 📁 Project Directory Structure
 
 ```text
 diabetes-risk-prediction/
 │
-├── .gitignore                          # Excludes .venv, cache, IDE files, while tracking code & outputs
+├── .gitignore                          # Ignores .venv, cache, raw data, while tracking code & outputs
 ├── README.md                           # Comprehensive portfolio documentation (this file)
 ├── requirements.txt                    # Pinned project dependencies for reproduction
-├── first_step.py                       # Initial environment sanity check script
+├── first_step.py                       # Python environment sanity check script
 ├── app.py                              # Interactive Streamlit web application
 │
 ├── data/
-│   ├── .gitkeep                        # Ensures data folder structure is preserved in git
-│   └── diabetes.csv                    # Pima Indians Diabetes dataset (768 rows, 9 columns)
+│   ├── .gitkeep                        # Tracks data directory in version control
+│   └── diabetes.csv                    # Pima Indians Diabetes dataset (768 rows, 9 columns; git-ignored)
 │
 ├── models/
-│   ├── .gitkeep                        # Preserves models directory structure
-│   ├── best_tuned_pipeline.joblib      # Primary tuned model pipeline (CV Winner: Logistic Regression C=10.0)
-│   └── diabetes_logistic_regression.joblib  # Baseline trained Logistic Regression pipeline
+│   ├── .gitkeep                        # Tracks models directory in version control
+│   ├── best_tuned_pipeline.joblib      # Production pipeline (CV Winner: Tuned Logistic Regression, C=10.0)
+│   └── diabetes_logistic_regression.joblib  # Baseline Logistic Regression pipeline (git-ignored)
 │
 ├── notebooks/
-│   └── .gitkeep                        # Reserved for interactive Jupyter notebook prototyping
+│   └── .gitkeep                        # Reserved for interactive Jupyter notebook development
 │
 ├── outputs/
-│   ├── 01_outcome_countplot.png         # Target distribution visualization (Class 0 vs Class 1)
-│   ├── 02_histograms_glucose_age_bmi.png # Histograms and KDE distributions for core features
-│   ├── 03_boxplots_glucose_bmi.png      # Boxplots comparing Glucose & BMI across diagnoses
-│   ├── 04_correlation_heatmap.png       # Correlation matrix across all features and target
-│   ├── 06_model_comparison.png          # Visual bar chart comparing baseline models
-│   ├── cross_validation_results.csv    # 5-Fold Stratified CV scores on training data
-│   ├── model_comparison.csv             # Baseline model metrics on 20% test split
-│   ├── model_evaluation.txt             # Detailed baseline evaluation report & coefficients
-│   └── tuned_model_test_results.csv     # Final evaluation of tuned models on 20% test split
+│   ├── 01_outcome_countplot.png         # Bar chart: Class 0 (500) vs Class 1 (268) distribution
+│   ├── 02_histograms_glucose_age_bmi.png # Histograms and KDE curves for primary features
+│   ├── 03_boxplots_glucose_bmi.png      # Boxplots comparing Glucose and BMI by diagnosis
+│   ├── 04_correlation_heatmap.png       # Pearson correlation matrix across all features
+│   ├── 06_model_comparison.png          # Visual bar chart comparing baseline algorithms
+│   ├── cross_validation_results.csv     # 5-Fold Stratified CV scores on training data
+│   ├── model_comparison.csv             # Baseline model metrics on the 20% test split
+│   ├── model_evaluation.txt             # Baseline evaluation report and learned coefficients
+│   └── tuned_model_test_results.csv     # Tuned model metrics and confusion matrices on test split
 │
 └── src/
-    ├── .gitkeep                        # Preserves src directory structure
-    ├── explore_data.py                 # EDA script: summary stats, missingness, physiological zeros
-    ├── visualize_data.py               # Plotting script: generates charts in outputs/
-    ├── prepare_data.py                 # Preprocessing pipeline: zero-to-NaN, ColumnTransformer, imputer/scaler
-    ├── train_model.py                  # Baseline trainer: fits Logistic Regression, exports evaluation report
-    ├── compare_models.py               # Comparative benchmark of 4 baseline algorithms
+    ├── .gitkeep                        # Tracks src directory in version control
+    ├── explore_data.py                 # EDA: audits missingness, stats, and zero values
+    ├── visualize_data.py               # Generates and saves exploratory charts to outputs/
+    ├── prepare_data.py                 # Preprocessing pipeline: zero-to-NaN, ColumnTransformer, split logic
+    ├── train_model.py                  # Baseline trainer: fits baseline Logistic Regression pipeline
+    ├── compare_models.py               # Comparative benchmark of 4 baseline algorithms on test set
     └── tune_models.py                  # 5-fold CV hyperparameter search, selects & exports best pipeline
 ```
 
 ---
 
-## 📦 Saved Artifacts & Outputs Guide
+## 💻 Windows Installation Guide
 
-### Model Artifacts (`models/`)
-- **`best_tuned_pipeline.joblib` (3.7 KB):** The deployment-ready pipeline produced by `src/tune_models.py`. Contains the fitted `ColumnTransformer` (median imputer and standard scaler) coupled with tuned `LogisticRegression(C=10.0)`. Used directly by `app.py`.
-- **`diabetes_logistic_regression.joblib` (3.7 KB):** The baseline pipeline produced by `src/train_model.py` with default hyperparameters (`C=1.0`).
+Follow these commands in **Windows PowerShell** or **Command Prompt** to set up the project:
 
-### Evaluation & Benchmark Tables (`outputs/`)
-- **`cross_validation_results.csv`:** Mean and standard deviation of F1 and ROC-AUC across 5 stratified training folds for Logistic Regression, Random Forest, and SVM.
-- **`model_comparison.csv`:** Baseline test-set comparison across Accuracy, Precision, Recall, F1-Score, and ROC-AUC for 4 candidate models.
-- **`tuned_model_test_results.csv`:** Unseen test-set evaluation for all three hyperparameter-tuned pipelines, including full confusion matrix tallies (TN, FP, FN, TP).
-- **`model_evaluation.txt`:** Plaintext baseline report detailing class distributions, confusion matrix interpretation, classification report, and feature coefficients.
-
-### Visualizations (`outputs/`)
-- **`01_outcome_countplot.png`:** Class balance diagram showing 500 healthy and 268 diabetic patients.
-- **`02_histograms_glucose_age_bmi.png`:** Three-panel histogram displaying right-skewed Age and unimodal Glucose/BMI.
-- **`03_boxplots_glucose_bmi.png`:** Grouped boxplots demonstrating significant distribution shifts in glucose and BMI for positive diagnoses.
-- **`04_correlation_heatmap.png`:** Seaborn annotated heatmap showing inter-feature correlations.
-- **`06_model_comparison.png`:** Comparative bar chart contrasting F1-scores across baseline algorithms.
-
----
-
-## 💻 Setup Guide for Windows
-
-Follow these step-by-step instructions in PowerShell or Command Prompt.
-
-### 1. Prerequisites
-- Python 3.10, 3.11, or 3.12 installed on your system.
-- On Windows, the Python Launcher (`py`) is recommended because it automatically locates modern Python installations even if legacy versions exist in PATH.
-
-### 2. Open Project Folder
-Open PowerShell or Command Prompt and navigate to the project directory:
+### 1. Navigate to Project Directory
 ```powershell
 cd c:\Users\ASUS\Desktop\Projects\diabetes-risk-prediction
 ```
 
-### 3. Create Virtual Environment
-Create an isolated virtual environment named `.venv`:
+### 2. Create the Virtual Environment
+Create an isolated environment named `.venv`:
 ```powershell
 py -m venv .venv
 ```
-*(If `py` is not installed, use `python -m venv .venv`).*
+*(If the `py` launcher is not installed, run `python -m venv .venv`)*
 
-### 4. Activate the Virtual Environment
-Activate the environment so that all subsequent commands use the isolated project dependencies:
-
+### 3. Activate the Virtual Environment
 - **In PowerShell:**
   ```powershell
   .\.venv\Scripts\Activate.ps1
   ```
-  > [!TIP]
-  > **PowerShell Execution Policy Error?** If you see an error stating that script execution is disabled on your machine, run this one-time command in PowerShell to permit local scripts for your current session:
-  > ```powershell
-  > Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-  > ```
-  > Then rerun `.\.venv\Scripts\Activate.ps1`.
-
+  *(If you encounter a script execution restriction, run `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass` then re-run the activation script).*
 - **In Command Prompt (`cmd.exe`):**
   ```cmd
   .venv\Scripts\activate.bat
   ```
-
 - **In Git Bash:**
   ```bash
   source .venv/Scripts/activate
   ```
 
-Once activated, your terminal prompt will display the prefix: `(.venv)`.
+Your terminal prompt will now display the `(.venv)` prefix.
 
-### 5. Install Dependencies
-Upgrade pip and install all required libraries:
+### 4. Install Dependencies
+Install all required libraries specified in [`requirements.txt`](file:///c:/Users/ASUS/Desktop/Projects/diabetes-risk-prediction/requirements.txt):
 ```powershell
 pip install --upgrade pip
 pip install -r requirements.txt
@@ -382,99 +380,105 @@ pip install -r requirements.txt
 
 ---
 
-## 🚀 Execution Guide: Reproducing Analysis & Launching App
+## 🚀 Running the Analysis & Streamlit Application
 
-Ensure your virtual environment is active (`(.venv)`) before running these commands.
+With your virtual environment active (`(.venv)`), run the project commands:
 
-### Step 1: Verify Python Environment
-Confirm that basic Python variables and imports execute correctly:
+### Step 1: Environment Sanity Check
+Confirm that the Python interpreter and basic imports are functioning:
 ```powershell
 python first_step.py
 ```
-*Expected output:* Prints project name and sample patient age.
 
----
-
-### Step 2: Run Exploratory Data Analysis (EDA)
-Inspect dataset dimensions, feature types, missingness, class breakdown, and physiological zero counts:
+### Step 2: Run Exploratory Data Analysis
+Examine dataset summary statistics, null counts, and zero distributions:
 ```powershell
 python src/explore_data.py
 ```
 
----
-
-### Step 3: Re-Generate Exploratory Visualizations
-Create and export all distribution charts, boxplots, and heatmaps to the `outputs/` folder:
+### Step 3: Generate Exploratory Visualizations
+Re-create and export distribution plots, boxplots, and correlation heatmaps to `outputs/`:
 ```powershell
 python src/visualize_data.py
 ```
 
----
-
 ### Step 4: Run Baseline Data Preparation & Training
-Run data preprocessing checks, fit the baseline Logistic Regression pipeline, evaluate on the 20% test split, and generate `outputs/model_evaluation.txt`:
+Fit the baseline Logistic Regression pipeline and generate the initial evaluation report:
 ```powershell
 python src/prepare_data.py
 python src/train_model.py
 ```
 
----
-
-### Step 5: Compare Four Baseline Algorithms
-Train and benchmark Logistic Regression, Decision Tree, Random Forest, and SVM on the held-out test set:
+### Step 5: Benchmark Baseline Algorithms
+Train and evaluate 4 baseline algorithms on the test split:
 ```powershell
 python src/compare_models.py
 ```
-*Outputs generated:* `outputs/model_comparison.csv` and `outputs/06_model_comparison.png`.
-
----
 
 ### Step 6: Execute 5-Fold Cross-Validation & Hyperparameter Tuning
-Run GridSearchCV with Stratified 5-Fold CV across hyperparameter grids, evaluate tuned models on the unseen test set, and export the best pipeline to `models/best_tuned_pipeline.joblib`:
+Run GridSearchCV over candidate models, evaluate on the test split, and export the best pipeline:
 ```powershell
 python src/tune_models.py
 ```
-*Outputs generated:* `outputs/cross_validation_results.csv`, `outputs/tuned_model_test_results.csv`, and `models/best_tuned_pipeline.joblib`.
 
----
-
-### Step 7: Launch the Interactive Streamlit Web App
-Launch the interactive web application in your local browser:
+### Step 7: Launch the Streamlit Web Application
+Start the interactive application locally:
 ```powershell
 streamlit run app.py
 ```
 
-Streamlit will print local access URLs in your terminal:
+Streamlit will output local access URLs in your terminal:
 ```text
   Local URL: http://localhost:8501
   Network URL: http://192.168.x.x:8501
 ```
-Open `http://localhost:8501` in your web browser. You can now adjust sliders and numeric inputs for all 8 patient features and observe real-time model risk predictions and probability estimates.
-
-To stop the Streamlit server, press `Ctrl + C` in your terminal.
+Open **`http://localhost:8501`** in any web browser to interact with the model. To stop the application server, press `Ctrl + C` in your terminal.
 
 ---
 
-## 🧠 Key Machine Learning Lessons & Portfolio Takeaways
+## 📦 Saved Artifacts & Outputs Guide
 
-1. **Never Impute Before Splitting:**
-   Imputing missing values using the full dataset leaks information from the test set into the training process. Fitting `SimpleImputer` solely on training folds guarantees that performance metrics reflect true out-of-sample generalization.
+### Model Artifacts (`models/`)
+- **[`best_tuned_pipeline.joblib`](file:///c:/Users/ASUS/Desktop/Projects/diabetes-risk-prediction/models/best_tuned_pipeline.joblib) (3.7 KB):** The deployment artifact selected via cross-validation. Encapsulates the fitted `ColumnTransformer` (median imputation + standard scaling) and tuned `LogisticRegression(C=10.0)`. Used directly by `app.py`.
+- **`diabetes_logistic_regression.joblib` (3.7 KB):** The initial baseline pipeline (`C=1.0`) created during Stage 4.
 
-2. **Domain Understanding Dictates Preprocessing:**
-   Mechanical preprocessing treats all zeros identically. Domain knowledge revealed that `Pregnancies = 0` is a normal, valid medical value, whereas `Glucose = 0` or `BMI = 0` indicates an unrecorded test that must be treated as missing (`NaN`).
+### Evaluation & Metric Tables (`outputs/`)
+- **[`cross_validation_results.csv`](file:///c:/Users/ASUS/Desktop/Projects/diabetes-risk-prediction/outputs/cross_validation_results.csv):** Mean and standard deviation for F1-score and ROC-AUC across 5 cross-validation training folds for Logistic Regression, Random Forest, and SVM.
+- **[`model_comparison.csv`](file:///c:/Users/ASUS/Desktop/Projects/diabetes-risk-prediction/outputs/model_comparison.csv):** Benchmark metrics (Accuracy, Precision, Recall, F1, ROC-AUC) across 4 baseline algorithms on the 20% test split.
+- **[`tuned_model_test_results.csv`](file:///c:/Users/ASUS/Desktop/Projects/diabetes-risk-prediction/outputs/tuned_model_test_results.csv):** Comprehensive test split performance metrics for tuned models, including full confusion matrix counts (TN, FP, FN, TP).
+- **[`model_evaluation.txt`](file:///c:/Users/ASUS/Desktop/Projects/diabetes-risk-prediction/outputs/model_evaluation.txt):** Detailed plaintext evaluation report including classification breakdown and learned logistic regression weights.
 
-3. **Accuracy is Insufficient for Skewed Classes:**
-   In a dataset with 65% non-diabetic records, a naive classifier that predicts "healthy" for every patient achieves 65% accuracy while missing 100% of actual diabetics. Prioritizing **F1-Score** balances precision (avoiding false alarms) and recall (catching true positive patients).
+### Visualizations (`outputs/`)
+- **`01_outcome_countplot.png`:** Class balance bar chart illustrating the 500 / 268 target ratio.
+- **`02_histograms_glucose_age_bmi.png`:** Three-panel histogram displaying right-skewed Age distributions and unimodal Glucose and BMI curves.
+- **`03_boxplots_glucose_bmi.png`:** Grouped boxplots demonstrating significant upward distribution shifts in glucose and BMI for positive diabetic outcomes.
+- **`04_correlation_heatmap.png`:** Annotated correlation matrix highlighting Glucose ($r = 0.47$) and BMI ($r = 0.29$) as primary linear correlates with diabetes.
+- **`06_model_comparison.png`:** Comparative chart illustrating test-set F1 performance across baseline candidate architectures.
 
-4. **Multi-Fold Stability vs. Single Test Splits:**
-   Evaluating on a single test set can be noisy. Using **Stratified 5-Fold Cross-Validation** during hyperparameter search provides an objective estimate of algorithmic stability and protects against overfitting to a particular partition.
+---
 
-5. **Linear Simplicity vs. Ensemble Capacity:**
-   While Random Forest achieved higher recall on the single test split, Logistic Regression demonstrated superior average F1 stability across 5 cross-validation folds and offers direct, auditable feature coefficients—a critical consideration in healthcare informatics.
+## ⚠️ Known Limitations & Responsible-Use Statement
+
+1. **Not for Clinical Diagnosis:** This application and its trained parameters do not constitute medical advice, a diagnostic device, or clinical decision support software.
+2. **Missing Not At Random (MNAR):** Missing clinical tests were recorded as `0`. While median imputation enables algorithm convergence, in medical settings tests like insulin are typically ordered for specific symptomatic indications. Treating these omissions as random misses biological nuance.
+3. **Threshold Calibration:** The default classification decision threshold ($0.50$) was used. In real-world medical screening, decision thresholds are often lowered to maximize sensitivity (recall), trading off precision to reduce false negatives.
+4. **Generalizability Gap:** The statistical patterns captured herein reflect a specific demographic cohort collected over three decades ago and cannot be presumed valid across general modern populations.
+
+---
+
+## 🔮 Planned Future Improvements
+
+The following improvements are **planned future extensions** and are not yet implemented in the current repository:
+
+- [ ] **Advanced Imputation Methods:** Implement iterative multivariate imputation (`IterativeImputer` / MICE) or $k$-nearest neighbors imputation (`KNNImputer`) to better handle high-missingness columns like `Insulin` and `SkinThickness`.
+- [ ] **Clinical Cost-Sensitive Threshold Tuning:** Optimize the classification decision threshold specifically for recall to lower the false negative rate (missed diabetic patients) based on medical risk preferences.
+- [ ] **SHAP & LIME Interpretability Integration:** Add local feature attribution explanations (SHAP waterfall plots) into the Streamlit interface to show individualized prediction drivers.
+- [ ] **Modern Gradient Boosting Integration:** Benchmark modern gradient boosting frameworks (XGBoost, LightGBM, and CatBoost) alongside linear and forest models.
+- [ ] **Automated CI/CD Test Pipeline:** Implement GitHub Actions to automate unit testing of data transformations, pipeline serialization, and Streamlit component loading on every commit.
 
 ---
 
 ## 📜 License & Acknowledgments
 
-- **Dataset Credit:** National Institute of Diabetes and Digestive and Kidney Diseases (NIDDK), courtesy of the UCI Machine Learning Repository.
+- **Dataset Credit:** National Institute of Diabetes and Digestive and Kidney Diseases (NIDDK), via the UCI Machine Learning Repository.
 - **License:** Distributed under the MIT License for educational and portfolio demonstration use.
