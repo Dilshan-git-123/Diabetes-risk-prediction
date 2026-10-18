@@ -182,7 +182,7 @@ The dataset contains eight diagnostic measurements. A crucial step in this proje
 The project is structured into sequential, reproducible stages:
 
 ```text
-Stage 1: Environment & Setup ──► Verify Python runtime and packages (first_step.py)
+Stage 1: Environment & Setup ──► Verify Python runtime and packages (virtual environment verification)
 Stage 2: Exploratory Data Analysis ──► Validate schema, missingness, and zero counts (explore_data.py)
 Stage 3: Statistical Visualizations ──► Export class counts, distributions, heatmaps (visualize_data.py)
 Stage 4: Preprocessing & Baseline Training ──► 80/20 Stratified split & Baseline Logistic Regression (train_model.py)
@@ -191,7 +191,7 @@ Stage 6: Hyperparameter Optimization ──► 5-Fold Stratified CV tuning & exp
 Stage 7: Web Application Deployment ──► Interactive Streamlit diagnosis simulator (app.py)
 ```
 
-1. **Stage 1 — Environment Setup:** Initialize directory hierarchy, configure virtual environment (`.venv`), install pinned dependencies via `requirements.txt`, and verify the Python interpreter with [`first_step.py`](file:///c:/Users/ASUS/Desktop/Projects/diabetes-risk-prediction/first_step.py).
+1. **Stage 1 — Environment Setup:** Initialize directory hierarchy, configure virtual environment (`.venv`), install pinned dependencies via `requirements.txt`, and verify the Python interpreter and required libraries.
 2. **Stage 2 — Exploratory Data Analysis (EDA):** Run [`src/explore_data.py`](file:///c:/Users/ASUS/Desktop/Projects/diabetes-risk-prediction/src/explore_data.py) to audit the dataset shape `(768, 9)`, confirm that no native nulls exist in the CSV, analyze the 65.1% / 34.9% target distribution, and quantify biological zeros.
 3. **Stage 3 — Data Visualization:** Run [`src/visualize_data.py`](file:///c:/Users/ASUS/Desktop/Projects/diabetes-risk-prediction/src/visualize_data.py) to render and save distribution charts, boxplots, and correlation heatmaps to `outputs/`.
 4. **Stage 4 — Preprocessing & Baseline Pipeline:** Run [`src/prepare_data.py`](file:///c:/Users/ASUS/Desktop/Projects/diabetes-risk-prediction/src/prepare_data.py) and [`src/train_model.py`](file:///c:/Users/ASUS/Desktop/Projects/diabetes-risk-prediction/src/train_model.py). Implement stratified 80/20 partitioning, assemble the `ColumnTransformer`, fit a baseline Logistic Regression model, evaluate on the test split, and export `outputs/model_evaluation.txt`.
@@ -300,7 +300,6 @@ diabetes-risk-prediction/
 ├── .gitignore                          # Ignores .venv, cache, raw data, while tracking code & outputs
 ├── README.md                           # Comprehensive portfolio documentation (this file)
 ├── requirements.txt                    # Pinned project dependencies for reproduction
-├── first_step.py                       # Python environment sanity check script
 ├── app.py                              # Interactive Streamlit web application
 │
 ├── data/
@@ -385,9 +384,9 @@ pip install -r requirements.txt
 With your virtual environment active (`(.venv)`), run the project commands:
 
 ### Step 1: Environment Sanity Check
-Confirm that the Python interpreter and basic imports are functioning:
+Confirm that the Python interpreter and required packages are functioning inside the virtual environment:
 ```powershell
-python first_step.py
+python -c "import pandas, sklearn, streamlit; print('Environment OK')"
 ```
 
 ### Step 2: Run Exploratory Data Analysis
