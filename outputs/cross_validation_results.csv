@@ -1,0 +1,4 @@
+Model,Best_Parameters,Mean_CV_F1,Std_CV_F1,Mean_CV_ROC_AUC,Std_CV_ROC_AUC
+Logistic Regression,{'C': 10.0},0.6563,0.0291,0.8433,0.0188
+Random Forest,"{'max_depth': 10, 'min_samples_split': 5, 'n_estimators': 100}",0.6496,0.0209,0.8251,0.029
+Support Vector Machine,"{'C': 1.0, 'gamma': 'scale', 'kernel': 'linear'}",0.6524,0.0233,0.8446,0.0158

@@ -1,0 +1,60 @@
+===========================================================================
+DIABETES RISK PREDICTION - BASELINE MODEL EVALUATION REPORT
+Model: Logistic Regression (Scikit-Learn)
+Trained on: 80% Stratified Training Set (614 patients)
+Evaluated on: 20% Held-out Test Set (154 patients)
+Pipeline: ColumnTransformer (Median Imputation + StandardScaler) -> LogisticRegression
+===========================================================================
+
+1. SUMMARY METRICS
+---------------------------------------------------------------------------
+Accuracy : 0.7078 (70.78%)
+Precision: 0.6000 (60.00%)
+Recall   : 0.5000 (50.00%)
+F1-Score : 0.5455 (54.55%)
+ROC-AUC  : 0.8130
+
+2. CONFUSION MATRIX
+---------------------------------------------------------------------------
+                      Predicted Non-Diabetic (0)   Predicted Diabetic (1)
+Actual Non-Diabetic (0):         82 (TN)                  18 (FP)
+Actual Diabetic (1)    :         27 (FN)                  27 (TP)
+
+- True Negatives  (TN): 82 (Correctly identified healthy / non-diabetic patients)
+- False Positives (FP): 18 (Type I error: healthy patient flagged as at-risk)
+- False Negatives (FN): 27 (Type II error: patient with diabetes was missed)
+- True Positives  (TP): 27 (Correctly identified patients with diabetes)
+
+3. CLASSIFICATION REPORT
+---------------------------------------------------------------------------
+                  precision    recall  f1-score   support
+
+0 (Non-Diabetic)       0.75      0.82      0.78       100
+    1 (Diabetic)       0.60      0.50      0.55        54
+
+        accuracy                           0.71       154
+       macro avg       0.68      0.66      0.67       154
+    weighted avg       0.70      0.71      0.70       154
+
+
+4. LEARNED COEFFICIENTS (Feature Importance)
+---------------------------------------------------------------------------
+Intercept: -0.8722
+Glucose                     1.182567
+BMI                         0.688652
+Pregnancies                 0.377446
+DiabetesPedigreeFunction    0.233337
+Age                         0.147794
+SkinThickness               0.028321
+BloodPressure              -0.044111
+Insulin                    -0.066119
+
+Higher positive coefficients indicate features that increase the probability
+of a diabetes diagnosis (e.g. Glucose and BMI).
+
+5. EDUCATIONAL AND CLINICAL DISCLAIMER
+---------------------------------------------------------------------------
+This model is developed for educational and algorithmic demonstration purposes
+using the historical Pima Indians Diabetes Database. It is NOT clinically
+validated and MUST NOT be used for real-world patient diagnosis or healthcare decisions.
+===========================================================================

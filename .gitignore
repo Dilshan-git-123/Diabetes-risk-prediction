@@ -1,0 +1,41 @@
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Trained machine learning model artifacts
+models/*
+!models/.gitkeep
+!models/best_tuned_pipeline.joblib
+*.pkl
+*.joblib
+!models/best_tuned_pipeline.joblib
+*.h5
+*.model
+
+# Datasets and raw files
+data/*
+!data/.gitkeep
+
+# Environment variables, credentials, and secrets
+.env
+.env.*
+*.env
+secrets.toml
+.streamlit/secrets.toml
+
+# IDE and OS settings
+.vscode/
+.idea/
+*.swp
+Thumbs.db
+.DS_Store
