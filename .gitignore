@@ -12,10 +12,12 @@ ENV/
 # Jupyter Notebook checkpoints
 .ipynb_checkpoints/
 
+# Local scratch / test scripts
+first_step.py
+
 # Trained machine learning model artifacts
 models/*
 !models/.gitkeep
-!models/best_tuned_pipeline.joblib
 *.pkl
 *.joblib
 !models/best_tuned_pipeline.joblib

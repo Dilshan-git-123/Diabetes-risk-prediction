@@ -285,7 +285,7 @@ An honest and critical discussion of why **Logistic Regression** was saved as th
 
 ### 3. Why the Test Set Must Never Be Used to Choose the Model
 > [!IMPORTANT]
-> **Data Science Rule:** Using test set performance to select which model to deploy introduces **post-hoc data snooping leakage**. 
+> **Data Science Rule:** Using test set performance to select which model to deploy introduces **post-hoc data snooping leakage**.
 > - The held-out test set exists solely to measure how well the already-selected model generalizes to unseen data.
 > - If an engineer evaluates multiple models on the test set and subsequently chooses the test-set winner, the test set ceases to be an independent out-of-sample benchmark and effectively functions as a secondary training/validation set.
 > - Because this repository adheres to sound methodology, the selection rule (Mean CV F1) was maintained, and the trade-off is documented transparently rather than obscured.
